@@ -15,11 +15,11 @@ and open the template in the editor.
         <br>
         <br>
         <h3> Sign Up Form </h3>
-        <form method="post" action="virus_checker.php" enctype='multipart/form-data'>
+        <form method="post" action="add_user.php" enctype='multipart/form-data'>
             Username: <input type="text" name="username"> <br>
             Password: <input type="password" name="password"> <br>
             Confirm password: <input type=password" name="confirm_password"> <br>
-            <input type="submit" value="Upload">
+            <input type="submit" value="Signup">
         </form>
             <!-- TO DO: JavaScript input validation -->
         <h3> Sign In </h3>

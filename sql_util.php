@@ -5,7 +5,7 @@
         
         private $connection;
         
-        // SOME constants 
+        // SOME SQL QUERIES 
         const CREATE_TABLE_Q= "CREATE TABLE IF NOT EXISTS "
                 . "users(username VARCHAR(20) PRIMARY KEY,"
                 . "password CHAR(32) NOT NULL, "
@@ -15,10 +15,13 @@
         const ADD_USER_Q = "INSERT INTO users(username, password,"
                 . "presalt, postsalt) VALUES (?, ?, ?, ?);";
         const GET_USER_CRED_Q = "SELECT * FROM users WHERE username = ?;";
-
+        
+        // SOME CONSTANTS
+        const HASH_ALGO = "ripemd128";
         const ERROR_MSG = "Could not connected to database.";
         const ERROR_MSG_USER_MIGHT_EXIST = "Cound not determine if the username is "
                 . "already taken. \n Try again later.";
+        
         
         function __construct(){
             $this->connection = new mysql($hn, $un, $pm, $db);
@@ -39,7 +42,7 @@
             $username = sanitize($username);
             $pre_salt = bin2hex(random_bytes(3));
             $post_salt = bin2hex(random_bytes(3));
-            $password = hash('ripemd128', $pre_salt.$password.$post_salt);
+            $password = hash($this->HASH_ALGO, $pre_salt.$password.$post_salt);
             
             // Make sure the username is not taken
             $stmt = $this->connection->prepare($this->CREATE_TABLE_Q);
@@ -67,9 +70,28 @@
             return result;
         }
         
+        // Check if the user provides appropriate credentials
+        // Returns true if username and password match
+        // Returns false otherwise.
+        // TODO: check if user is not even in the db.
         public function check_credentials($name, $password){
-            // First verify if user exists and retrive the salts
+            $name = sanitize($name);
+            $password = sanitize($password);
             
+            // First verify if user exists and retrive the salts
+            $stmt = $this->conneciton->prepare($this->GET_USER_CRED_Q);
+            $stmt->bind_param('s', $name);
+            $result = false;
+            if($stmt->execute()){
+                $stmt->bind_result($dbUsername, $dbPassord, $pre_salt, $post_salt);
+                if($stmt->fetch_result()){
+                    if($dbUsername == null || !isset($dbUsername))
+                    $password = hash($this->HASH_ALGO, $pre_salt.$password.$post_salt);
+                    $result = ($passwod == $dbPassord);
+                }
+            }
+            $stmt->close();
+            return $result;
         }
     
         private function sanitize($variable){
