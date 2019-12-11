@@ -1,4 +1,4 @@
-<?php
+<?php 
     require_once 'login.php';
 
     class SQL_Cient{
@@ -7,14 +7,23 @@
         
         // SOME SQL QUERIES 
         const CREATE_TABLE_Q= "CREATE TABLE IF NOT EXISTS "
-                . "users(username VARCHAR(20) PRIMARY KEY,"
+                . "users(user VARCHAR(20) PRIMARY KEY,"
                 . "password CHAR(32) NOT NULL, "
                 . "presalt CHAR(6) NOT NULL, "
                 . "postsalt CHAR(6) NOT NULL);";
-        const TEST_USER_Q = "? IN SELECT user FROM users";
-        const ADD_USER_Q = "INSERT INTO users(username, password,"
+        const CREATE_ADMIN_TABLE_Q= "CREATE TABLE IF NOT EXISTS "
+                . "admins(user VARCHAR(20) PRIMARY KEY,"
+                . "password CHAR(32) NOT NULL, "
+                . "presalt CHAR(6) NOT NULL, "
+                . "postsalt CHAR(6) NOT NULL);";
+        const TEST_USER_Q = "? IN SELECT user FROM users;";
+        const TEST_ADMIN_Q = "? IN SELECT user FROM admins;";
+        const ADD_USER_Q = "INSERT INTO users(user, password,"
                 . "presalt, postsalt) VALUES (?, ?, ?, ?);";
-        const GET_USER_CRED_Q = "SELECT * FROM users WHERE username = ?;";
+        const ADD_ADMIN_Q = "INSERT INTO admins(user, password,"
+                . "presalt, postsalt) VALUES (?, ?, ?, ?);";
+        const GET_USER_CRED_Q = "SELECT * FROM users WHERE user = ?;";
+        const GET_ADMIN_CRED_Q = "SELECT * FROM admins WHERE user = ?;";
         
         // SOME CONSTANTS
         const HASH_ALGO = "ripemd128";
@@ -37,7 +46,11 @@
         // Returns true if the user was prorperly inserted into the database
         // Returns false if the user was not added due to bad data 
         // (non secure password, username already taken or non valid)
-        function add_user($username, $password){
+        public function add_user($username, $password){
+            return add($username, $password, false);
+        }
+
+        function add($username, $password, $admin){
             // Set up the data
             $username = sanitize($username);
             $pre_salt = bin2hex(random_bytes(3));
@@ -45,11 +58,16 @@
             $password = hash($this->HASH_ALGO, $pre_salt.$password.$post_salt);
             
             // Make sure the username is not taken
-            $stmt = $this->connection->prepare($this->CREATE_TABLE_Q);
+            $stmt = nil;
+            if($admin){
+                $stmt = $this->connection->prepare($this->CREATE_ADMIN_TABLE_Q);
+            }else{
+                $stmt = $this->connection->prepare($this->CREATE_TABLE_Q);
+            }
             $stmt->bind_param('s', $username);
             if($stmt->execute()){
                 $result->bind_result($user_exists);
-                if( !$stmt->fetch()){
+                if(!$stmt->fetch()){
                     display_error($this->ERROR_MSG_USER_MIGHT_EXIST);
                     die();
                 }
@@ -63,35 +81,63 @@
             }
             
             // Else add the user to db and return true to signify succes
-            $stmt = $this->connection->prepare($this->INSERT_USER_Q);
+            if($admin){
+                $stmt = $this->connection->prepare($this->INSERT_ADMIN_Q);
+            } else {
+                $stmt = $this->connection->prepare($this->INSERT_USER_Q);
+            }
             $stmt->bind_param('ssss', $username, $password, $pre_salt, $post_salt);
             $result = $stmt->execute();
             $stmt->close();
             return result;
         }
         
+        // Returns true if the user was prorperly inserted into the database
+        // Returns false if the user was not added due to bad data 
+        // (non secure password, username already taken or non valid)
+        function add_admin($username, $password){
+            return add($username, $password, true);
+        }
+        
         // Check if the user provides appropriate credentials
         // Returns true if username and password match
         // Returns false otherwise.
         // TODO: check if user is not even in the db.
-        public function check_credentials($name, $password){
+        private function check_credentials($name, $password, $admin){
             $name = sanitize($name);
             $password = sanitize($password);
             
             // First verify if user exists and retrive the salts
-            $stmt = $this->conneciton->prepare($this->GET_USER_CRED_Q);
+            $stmt = nil;
+            if($admin){
+                $stmt = $this->connection->prepare($this->GET_ADMIN_CRED_Q);
+            }else {
+                $stmt = $this->conneciton->prepare($this->GET_USER_CRED_Q);
+            }
             $stmt->bind_param('s', $name);
             $result = false;
             if($stmt->execute()){
                 $stmt->bind_result($dbUsername, $dbPassord, $pre_salt, $post_salt);
                 if($stmt->fetch_result()){
-                    if($dbUsername == null || !isset($dbUsername))
-                    $password = hash($this->HASH_ALGO, $pre_salt.$password.$post_salt);
-                    $result = ($passwod == $dbPassord);
+                    if($dbUsername == null || !isset($dbUsername)){
+                        $result = false;
+                    } else{
+                        $password = hash($this->HASH_ALGO, $pre_salt.$password.$post_salt);
+                        $result = ($passwod == $dbPassord);
+                    }
                 }
             }
             $stmt->close();
             return $result;
+        }
+        
+        public function check_user_credentials($name, $password){
+            return check_credential($name, $password, false);
+        }
+                
+        
+        public function check_admin_credential($name, $password){
+            return check_credentials($name, $password, true);
         }
     
         private function sanitize($variable){

@@ -24,6 +24,6 @@ if(isset(_POST['name']) && isset(_POST['password'])
         the main page and try again.
     </p>
 _END;
-}
+} 
 
 ?>

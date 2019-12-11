@@ -29,6 +29,12 @@ and open the template in the editor.
             Password: <input type="password" name="returning_password"> <br>
             <input type="submit" value="Signin">
         </form>
-            
+        <h3>Admin Page Login</h3>
+        <form method='post' action="admin.php"e ncrype='multipart/form-data'>
+            Admin: <input type="text" name="admin"> <br>
+            Password: <input type="password" name="admin_password"> <br>
+            <input type="submit" value="Signin">
+        </form>
+
     </body>
 </html>
