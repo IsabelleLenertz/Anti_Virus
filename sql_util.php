@@ -1,8 +1,7 @@
 <?php 
-    require_once 'login.php';
-
+    
     class SQL_Client{
-        
+
         private $connection;
         
         // SOME SQL QUERIES 
@@ -30,12 +29,12 @@
         const ERROR_MSG = "Could not connected to database.";
         const ERROR_MSG_USER_MIGHT_EXIST = "Cound not determine if the username is "
                 . "already taken. \n Try again later.";
+
         
-        
-        function __construct(){
-            $this->connection = new mysql($hn, $un, $pm, $db);
+        function __construct($hn, $un, $pw, $db){
+            $this->connection = new mysqli($hn, $un, $pw, $db);
             if($this->connection->connect_error){
-                display_error($this->ERROR_MSG);
+                $this->display_error($this->ERROR_MSG);
             }
         }
         
@@ -47,15 +46,15 @@
         // Returns false if the user was not added due to bad data 
         // (non secure password, username already taken or non valid)
         public function add_user($username, $password){
-            return add($username, $password, false);
+            return $this->add($username, $password, false);
         }
 
         function add($username, $password, $admin){
             // Set up the data
-            $username = sanitize($username);
+            $username = $this->sanitize($username);
             $pre_salt = bin2hex(random_bytes(3));
             $post_salt = bin2hex(random_bytes(3));
-            $password = hash($this->HASH_ALGO, $pre_salt.$password.$post_salt);
+            $password = hash($this->HASH_ALGO, $pre_salt.$this->sanitize($password).$post_salt);
             
             // Make sure the username is not taken
             $stmt = nil;
@@ -68,7 +67,7 @@
             if($stmt->execute()){
                 $result->bind_result($user_exists);
                 if(!$stmt->fetch()){
-                    display_error($this->ERROR_MSG_USER_MIGHT_EXIST);
+                    $this->display_error($this->ERROR_MSG_USER_MIGHT_EXIST);
                     die();
                 }
                         
@@ -96,7 +95,7 @@
         // Returns false if the user was not added due to bad data 
         // (non secure password, username already taken or non valid)
         function add_admin($username, $password){
-            return add($username, $password, true);
+            return $this->add($username, $password, true);
         }
         
         // Check if the user provides appropriate credentials
@@ -104,8 +103,8 @@
         // Returns false otherwise.
         // TODO: check if user is not even in the db.
         private function check_credentials($name, $password, $admin){
-            $name = sanitize($name);
-            $password = sanitize($password);
+            $name = $this->sanitize($name);
+            $password = $this->sanitize($password);
             
             // First verify if user exists and retrive the salts
             $stmt = nil;
@@ -132,12 +131,12 @@
         }
         
         public function check_user_credentials($name, $password){
-            return check_credential($name, $password, false);
+            return $this->check_credential($name, $password, false);
         }
                 
         
         public function check_admin_credential($name, $password){
-            return check_credentials($name, $password, true);
+            return $this->check_credentials($name, $password, true);
         }
     
         public function sanitize($variable){
@@ -154,6 +153,6 @@
                     Please reload the page. If you are still having problems,
                     <a herf="mailto:isabelle@delmas.us"> email the administrator</a>.
                     Thank you;
-    _END;
+_END;
         }
     }

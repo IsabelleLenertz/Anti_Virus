@@ -1,22 +1,13 @@
 <?php
 require_once 'sql_util.php';
 require_once 'session_management.php';
+require_once 'login.php'
      
 
-    // JS methods to make a pop up appear if some action could not be executed
-    echo <<<_END
-    <script>
-    // When the user clicks on <div>, open the popup
-    function myFunction() {
-        var popup = document.getElementById("myPopup");
-        popup.classList.toggle("show");
-    }
-    </script>
-    
-_END;
+
     
     // $client manages connection and requests to the database
-    $client = new SQL_Client();
+    $client = new SQL_Client($hn, $un, $pw, $db);
 
 
     // Attempts to log the visitor in as a user using the info provided 
@@ -32,11 +23,7 @@ _END;
                 $_POST['returning_password'])){
             Sessions.start_admin(client.sanitize($_POST['returning_username']));
             header('Location: admin.php');
-        } else{
-            // JS popup to signify error
-            echo "<script>window.alert("sometext");</script>";
-
-        }
+        } 
     }
 
     // Attempts to log the visitor in as an admin using the info provided 
@@ -65,10 +52,24 @@ _END;
         // database used
         // Therefore in case the database needs to be changed and upadted 
         // only the code in the client needs to change
-        if ($client->add_user($_POST['username'], $_POST['password'])
-                && $client->check_user_credentials($_POST['username'], $_POST['password'])){
-            Sessions.start_user(client.sanitize($_POST['username']));
-            header('Location: virus_checker.php');
+        if ($client->add_user($_POST['username'], $_POST['password'])){
+            if($client->check_user_credentials($_POST['username'], $_POST['password'])){
+                Sessions.start_user(client.sanitize($_POST['username']));
+                header('Location: virus_checker.php');
+            } else {
+                // JS popup to signify error
+            echo "<script>window.alert('Could log you in with your new account."
+                    . "Please contact an administrator');</script>";
+            }
+        } else {
+            // JS popup to signify error
+            echo "<script>window.alert('Could not create a new account. "
+                    . "Problems might be:"
+                    . "<br> username already taken"
+                    . "<br> password does not meet security requirements"
+                    . "<br> Problem with backem server. Contact an administrator"
+                    . "');</script>";
+
         }
     }
     
