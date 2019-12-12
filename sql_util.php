@@ -1,33 +1,35 @@
 <?php 
+// CREATE USER 'web_agent'@'localhost' IDENTIFIED BY 'IAimeTheCrepesAuJellyEtSuggar!!VeryBeaucoup';
+// GRANT INSERT, SELECT, CREATE ON antivirus.* to 'web_agent'@'localhost';
     
     class SQL_Client{
 
         private $connection;
         
         // SOME SQL QUERIES 
-        const CREATE_TABLE_Q= "CREATE TABLE IF NOT EXISTS "
+        private $CREATE_TABLE_Q= "CREATE TABLE IF NOT EXISTS "
                 . "users(user VARCHAR(20) PRIMARY KEY,"
                 . "password CHAR(32) NOT NULL, "
                 . "presalt CHAR(6) NOT NULL, "
                 . "postsalt CHAR(6) NOT NULL);";
-        const CREATE_ADMIN_TABLE_Q= "CREATE TABLE IF NOT EXISTS "
+        private $CREATE_ADMIN_TABLE_Q= "CREATE TABLE IF NOT EXISTS "
                 . "admins(user VARCHAR(20) PRIMARY KEY,"
                 . "password CHAR(32) NOT NULL, "
                 . "presalt CHAR(6) NOT NULL, "
                 . "postsalt CHAR(6) NOT NULL);";
-        const TEST_USER_Q = "? IN SELECT user FROM users;";
-        const TEST_ADMIN_Q = "? IN SELECT user FROM admins;";
-        const ADD_USER_Q = "INSERT INTO users(user, password,"
+        private $TEST_USER_Q = "? IN SELECT user FROM users;";
+        private $TEST_ADMIN_Q = "? IN SELECT user FROM admins;";
+        private $ADD_USER_Q = "INSERT INTO users(user, password,"
                 . "presalt, postsalt) VALUES (?, ?, ?, ?);";
-        const ADD_ADMIN_Q = "INSERT INTO admins(user, password,"
+        private $ADD_ADMIN_Q = "INSERT INTO admins(user, password,"
                 . "presalt, postsalt) VALUES (?, ?, ?, ?);";
-        const GET_USER_CRED_Q = "SELECT * FROM users WHERE user = ?;";
-        const GET_ADMIN_CRED_Q = "SELECT * FROM admins WHERE user = ?;";
+        private $GET_USER_CRED_Q = "SELECT * FROM users WHERE user = ?;";
+        private $GET_ADMIN_CRED_Q = "SELECT * FROM admins WHERE user = ?;";
         
         // SOME CONSTANTS
-        const HASH_ALGO = "ripemd128";
-        const ERROR_MSG = "Could not connected to database.";
-        const ERROR_MSG_USER_MIGHT_EXIST = "Cound not determine if the username is "
+        private $HASH_ALGO = "ripemd128";
+        private $ERROR_MSG = "Could not connected to database.";
+        private $ERROR_MSG_USER_MIGHT_EXIST = "Cound not determine if the username is "
                 . "already taken. \n Try again later.";
 
         
@@ -56,28 +58,45 @@
             $post_salt = bin2hex(random_bytes(3));
             $password = hash($this->HASH_ALGO, $pre_salt.$this->sanitize($password).$post_salt);
             
-            // Make sure the username is not taken
+            // Create tables if they do not exists
             $stmt = nil;
             if($admin){
                 $stmt = $this->connection->prepare($this->CREATE_ADMIN_TABLE_Q);
             }else{
                 $stmt = $this->connection->prepare($this->CREATE_TABLE_Q);
             }
+            if($stmt->excute() && $stmt->affected_rows == 0){
+                $stmt->bind_result($result);
+                if(!$stmt->fetch()){
+                    $this->display_error($this->ERROR_MSG);
+                }
+            }
+            if(!$result){
+                $this->display_error($this->ERROR_MSG);
+                return false;
+            }
+            $stmt->close();
+            
+            // Check if the username is already taken
+            if($admin){
+                $stmt = $this->connection->prepare($this->TEST_ADMIN_Q);
+            }else{
+                $stmt = $this->connection->prepare($this->TEST_USER_Q);
+            }
             $stmt->bind_param('s', $username);
             if($stmt->execute()){
                 $result->bind_result($user_exists);
                 if(!$stmt->fetch()){
-                    $this->display_error($this->ERROR_MSG_USER_MIGHT_EXIST);
+                    $this->display_error($this->ERROR_MSGT);
                     die();
                 }
-                        
             }
-            $stmt->close();
-            
-            // If the user already exists, signify it cannot be added to db
             if($user_exists){
+                $this->display_error($this->ERROR_MSG_USER_MIGHT_EXIST);
                 return false;
             }
+            
+            
             
             // Else add the user to db and return true to signify succes
             if($admin){

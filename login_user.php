@@ -1,7 +1,7 @@
 <?php
 require_once 'sql_util.php';
 require_once 'session_management.php';
-require_once 'login.php'
+require_once 'login.php';
      
 
 
