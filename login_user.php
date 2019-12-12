@@ -2,14 +2,14 @@
 require_once 'sql_util.php';
 require_once 'session_management.php';
 require_once 'login.php';
-     
-
-
     
     // $client manages connection and requests to the database
     $client = new SQL_Client($hn, $un, $pw, $db);
+    
+    // to create an admin instead of a user uncomment next line
+    //$client->add_admin("<name>", "<pass>");
 
-
+    
     // Attempts to log the visitor in as a user using the info provided 
     // in the post method from index.html
     if(isset($_POST['returning_username']) && isset($_POST['returning_password'])){
@@ -19,10 +19,11 @@ require_once 'login.php';
         // database used
         // Therefore in case the database needs to be changed and upadted 
         // only the code in the client needs to change
-        if ($client->check_admin_credential($_POST['returning_username'], 
+        if ($client->check_user_credentials($_POST['returning_username'], 
                 $_POST['returning_password'])){
-            Sessions.start_admin(client.sanitize($_POST['returning_username']));
-            header('Location: admin.php');
+            start_user($client->sanitize($_POST['returning_username']));
+            echo '<script language="javascript">window.location.'
+                . 'href ="virus_checker.php"</script>';
         } 
     }
 
@@ -35,10 +36,11 @@ require_once 'login.php';
         // database used
         // Therefore in case the database needs to be changed and upadted 
         // only the code in the client needs to change
-        if ($client->check_admin_credential($_POST['admin'], 
+        if ($client->check_admin_credentials($_POST['admin'], 
                 $_POST['admin_password'])){
-            Sessions.start_admin(client.sanitize($_POST['admin']));
-            header('Location: admin.php');
+            start_admin($client->sanitize($_POST['admin']));
+            echo '<script language="javascript">window.location.'
+                . 'href ="admin.php"</script>';
         }
     }
     
@@ -54,11 +56,13 @@ require_once 'login.php';
         // only the code in the client needs to change
         if ($client->add_user($_POST['username'], $_POST['password'])){
             if($client->check_user_credentials($_POST['username'], $_POST['password'])){
-                Sessions.start_user(client.sanitize($_POST['username']));
-                header('Location: virus_checker.php');
+                start_user($client->sanitize($_POST['username']));
+                echo '<script language="javascript">window.location.'
+                . 'href ="virus_checker.php"</script>';
             } else {
                 // JS popup to signify error
-            echo "<script>window.alert('Could log you in with your new account."
+            echo "<script>window.alert('Your account was created but we could"
+                    . "not log you in."
                     . "Please contact an administrator');</script>";
             }
         } else {
@@ -75,6 +79,7 @@ require_once 'login.php';
     
     // If the credentials were not valid or not enough info was provided
     // go back to login.
-    header('Location: index.html');
+    echo '<script language="javascript">window.location.'
+        . 'href ="index.php"</script>';
 
  ?>

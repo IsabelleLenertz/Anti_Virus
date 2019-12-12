@@ -17,8 +17,8 @@
                 . "password CHAR(32) NOT NULL, "
                 . "presalt CHAR(6) NOT NULL, "
                 . "postsalt CHAR(6) NOT NULL);";
-        private $TEST_USER_Q = "? IN SELECT user FROM users;";
-        private $TEST_ADMIN_Q = "? IN SELECT user FROM admins;";
+        private $TEST_USER_Q = "SELECT * FROM users WHERE user = ?;";
+        private $TEST_ADMIN_Q = "SELECT * FROM users WHERE user = ?;";
         private $ADD_USER_Q = "INSERT INTO users(user, password,"
                 . "presalt, postsalt) VALUES (?, ?, ?, ?);";
         private $ADD_ADMIN_Q = "INSERT INTO admins(user, password,"
@@ -65,17 +65,12 @@
             }else{
                 $stmt = $this->connection->prepare($this->CREATE_TABLE_Q);
             }
-            if($stmt->excute() && $stmt->affected_rows == 0){
-                $stmt->bind_result($result);
-                if(!$stmt->fetch()){
-                    $this->display_error($this->ERROR_MSG);
-                }
-            }
-            if(!$result){
+            if(!$stmt->execute() || !$stmt->affected_rows == 0){
                 $this->display_error($this->ERROR_MSG);
                 return false;
             }
             $stmt->close();
+            $stmt = nil;
             
             // Check if the username is already taken
             if($admin){
@@ -84,25 +79,23 @@
                 $stmt = $this->connection->prepare($this->TEST_USER_Q);
             }
             $stmt->bind_param('s', $username);
-            if($stmt->execute()){
-                $result->bind_result($user_exists);
-                if(!$stmt->fetch()){
-                    $this->display_error($this->ERROR_MSGT);
-                    die();
-                }
+            if(!$stmt->execute()){
+                $this->display_error($this->ERROR_MSGT);
+                return false;
             }
-            if($user_exists){
+            if($stmt->affected_rows > 0){
                 $this->display_error($this->ERROR_MSG_USER_MIGHT_EXIST);
                 return false;
             }
-            
+            $stmt->close();
+            $stmt=nil;
             
             
             // Else add the user to db and return true to signify succes
             if($admin){
-                $stmt = $this->connection->prepare($this->INSERT_ADMIN_Q);
+                $stmt = $this->connection->prepare($this->ADD_ADMIN_Q);
             } else {
-                $stmt = $this->connection->prepare($this->INSERT_USER_Q);
+                $stmt = $this->connection->prepare($this->ADD_USER_Q);
             }
             $stmt->bind_param('ssss', $username, $password, $pre_salt, $post_salt);
             $result = $stmt->execute();
@@ -130,18 +123,18 @@
             if($admin){
                 $stmt = $this->connection->prepare($this->GET_ADMIN_CRED_Q);
             }else {
-                $stmt = $this->conneciton->prepare($this->GET_USER_CRED_Q);
+                $stmt = $this->connection->prepare($this->GET_USER_CRED_Q);
             }
             $stmt->bind_param('s', $name);
             $result = false;
             if($stmt->execute()){
-                $stmt->bind_result($dbUsername, $dbPassord, $pre_salt, $post_salt);
-                if($stmt->fetch_result()){
+                $stmt->bind_result($dbUsername, $dbPassword, $pre_salt, $post_salt);
+                if($stmt->fetch()){
                     if($dbUsername == null || !isset($dbUsername)){
                         $result = false;
                     } else{
                         $password = hash($this->HASH_ALGO, $pre_salt.$password.$post_salt);
-                        $result = ($passwod == $dbPassord);
+                        $result = ($password == $dbPassword);
                     }
                 }
             }
@@ -150,11 +143,11 @@
         }
         
         public function check_user_credentials($name, $password){
-            return $this->check_credential($name, $password, false);
+            return $this->check_credentials($name, $password, false);
         }
                 
         
-        public function check_admin_credential($name, $password){
+        public function check_admin_credentials($name, $password){
             return $this->check_credentials($name, $password, true);
         }
     
