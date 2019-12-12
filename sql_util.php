@@ -1,7 +1,7 @@
 <?php 
     require_once 'login.php';
 
-    class SQL_Cient{
+    class SQL_Client{
         
         private $connection;
         
@@ -140,7 +140,7 @@
             return check_credentials($name, $password, true);
         }
     
-        private function sanitize($variable){
+        public function sanitize($variable){
             if(get_magic_quotes_gpc()) {
                 $variable = stripslashes($variable);
             }

@@ -1,5 +1,5 @@
 <?php
-include_once 'session_management.php';
+require_once 'session_management.php';
 
     // If the user is not logged in as an admin, return to main page
     if(!Sessions.validate_admin()->validate_admin_session()){
