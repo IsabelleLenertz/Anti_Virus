@@ -1,5 +1,8 @@
 <?php
+session_start();
+require_once 'session_management.php';
 require_once 'navbar.php';
+
 echo <<<_END
 <html>
     <head>

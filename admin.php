@@ -1,9 +1,13 @@
 <?php
+session_start();
 require_once 'session_management.php';
 
     // If the user is not logged in as an admin, return to main page
-    if(!Sessions.validate_admin()->validate_admin_session()){
-        header('Location: index.html');
+    if(!validate_admin()){
+    // JS popup to signify error
+    //echo "<script>window.alert('You are not an admin.');</script>"
+    //        . '<script language="javascript">window.location.'
+    //        . 'href ="index.php"</script>';
     }
     
     // The user is already logged in as an admin,
@@ -52,5 +56,5 @@ _END;
     $_FILES = nil;
     
     // Loads the page again
-    header('Location: admin.php');
+    //header('Location: admin.php');
 ?>

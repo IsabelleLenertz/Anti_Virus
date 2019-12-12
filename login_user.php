@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once 'sql_util.php';
 require_once 'session_management.php';
 require_once 'login.php';
@@ -6,8 +7,12 @@ require_once 'login.php';
     // $client manages connection and requests to the database
     $client = new SQL_Client($hn, $un, $pw, $db);
     
-    // to create an admin instead of a user uncomment next line
-    //$client->add_admin("<name>", "<pass>");
+    // to create an admin instead of a user uncomment next lin
+
+    $client->add_admin("admin", "123");
+
+
+
 
     
     // Attempts to log the visitor in as a user using the info provided 
@@ -47,7 +52,8 @@ require_once 'login.php';
     
     // Attempts create a new account for a user and lods them in
     //  using the info provided in the post method from index.html
-    if(isset($_POST['username']) && isset($_POST['password'])){
+    if(isset($_POST['username']) && isset($_POST['password'])
+            && (!empty($_POST['username']))){
         // Please, notice the sanitization is done by the sql client as it is 
         // using sql method to do so
         // This allows the reste of the code to know nothing about the 

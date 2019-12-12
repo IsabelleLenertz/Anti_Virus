@@ -65,7 +65,7 @@
             }else{
                 $stmt = $this->connection->prepare($this->CREATE_TABLE_Q);
             }
-            if(!$stmt->execute() || !$stmt->affected_rows == 0){
+            if(!$stmt->execute() || !$stmt->affected_rows === 0){
                 $this->display_error($this->ERROR_MSG);
                 return false;
             }
@@ -130,11 +130,11 @@
             if($stmt->execute()){
                 $stmt->bind_result($dbUsername, $dbPassword, $pre_salt, $post_salt);
                 if($stmt->fetch()){
-                    if($dbUsername == null || !isset($dbUsername)){
+                    if($dbUsername === null || !isset($dbUsername)){
                         $result = false;
                     } else{
                         $password = hash($this->HASH_ALGO, $pre_salt.$password.$post_salt);
-                        $result = ($password == $dbPassword);
+                        $result = ($password === $dbPassword);
                     }
                 }
             }

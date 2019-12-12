@@ -1,19 +1,17 @@
 <?php
-//session.auto_start = 1
-
     const MONTH_IN_SECONDS = 2592000;
     const HOUR_IN_SECONDS = 3600;
     
     // Starts a user session 
     function start_session($name, $isAdmin = false){
         ini_set('session.gc_maxlifetime', 60*60*24);
-        ini_set('session.save_path', '/home/session_info_antivirus');
+        ini_set('session.auto_start', true);
         session_start();
         session_regenerate_id();
         $_SESSION['username'] = $name;
         $_SESSION['isAdmin'] = $isAdmin;
         $_SESSION['check'] = hash('ripemd128', $_SERVER['REMOTE_ADDR']
-                .$_SESSION['check']);
+                .$_SERVER['HTTP_USER_AGENT']);
     }
     
     function start_user($name){
@@ -30,14 +28,15 @@
         // changes the id to prevent hijacking
         session_regenerate_id();
         // make sure a session was started
-        if(!isset($_SESSION[$username])){
+        if(!isset($_SESSION['username'])){
             return false;
         }
         // check ip address and browser settings
-        if ($_SESSION['check'] != $hash('ripemd128', $_SERVER['REMOTE_ADDR']
-                .$_SESSION['check'])){
+        if ($_SESSION['check'] != hash('ripemd128', $_SERVER['REMOTE_ADDR']
+                .$_SERVER['HTTP_USER_AGENT'])){
             return false;
         }
+        return true;
     }
     
     function validate_admin(){
@@ -48,6 +47,7 @@
     }
 
     function validate_user(){
+
         return validate_session();
     }
 
