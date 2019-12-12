@@ -1,9 +1,13 @@
 <?php
-    $s_client = new Session_Client();
+include_once 'session_management.php';
+
     // If the user is not logged in as an admin, return to main page
-    if(!$s_client->validate_admin_session()){
-        header('Location: index.php');
+    if(!Sessions.validate_admin()->validate_admin_session()){
+        header('Location: index.html');
     }
+    
+    // The user is already logged in as an admin,
+    // display the new virus upload interface.
     echo <<<_END
     <html>
         <head>
@@ -23,7 +27,13 @@
             </form>
 _END;        
     
+    // Not only is the user logged in as an admin,
+    // they also have submitted a file through the previous interface
     if(_FILES){
+        if(!isset($_POST['virus_name']) || !isset($_POST['author'])){
+            echo "You need to enter a name and a author "
+            . "to save a virus' signature\n";
+        }
         // Make sur it's an exe file
         // Geat signature from the file
         // Store info in database
@@ -31,7 +41,11 @@ _END;
         // Set a global variable (or cookie?) to signify success/failure
         // Reload admin.php
         // Display feedback
+    } else if(isset($_POST['virus_name']) || isset($_POST['author'])){
+        echo "You need to provide a file to generate its signature.\n";
     }
+    
+    
     
     // Reste super global
     // Not sure I need that.

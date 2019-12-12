@@ -1,7 +1,7 @@
 <?php
     $s_client = new Session_Client();
     if(!$s_client->validate_session()){
-        
+        header('Location: index.html')
     }
     echo <<<_END
     <html>
