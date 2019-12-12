@@ -6,8 +6,12 @@ require_once 'login.php';
     // $client manages connection and requests to the database
     $client = new SQL_Client($hn, $un, $pw, $db);
     
-    // to create an admin instead of a user uncomment next line
+    // to create an admin instead of a user uncomment next lin
+
     //$client->add_admin("<name>", "<pass>");
+
+
+
 
     
     // Attempts to log the visitor in as a user using the info provided 
