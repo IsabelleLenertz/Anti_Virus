@@ -9,7 +9,11 @@ require_once 'login.php';
     
     // to create an admin instead of a user uncomment next lin
 
-    $client->add_admin("admin", "123");
+
+
+
+    //$client->add_admin("<name>", "<pass>");
+
 
 
 

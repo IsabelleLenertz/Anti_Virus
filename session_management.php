@@ -49,6 +49,12 @@
     function validate_user(){
 
         return validate_session();
+
+
+
+
+
+
     }
 
     // Ends a user session and destroys cookies
