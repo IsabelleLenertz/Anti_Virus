@@ -27,23 +27,28 @@ _END;
         <h2> The perfect free tool to make sure your file is indeed a virus! </h2> <br>
         <br>
         <br>
-        <form method="post" action="antivirus.php" enctype='multipart/form-data'>
+        <form method="post" action="virus_checker.php" enctype='multipart/form-data'>
                 Select File: <input type="file" name="filename"> <br>
                 <input type="submit" value="Upload">
         </form>
 _END;
         
     if($_FILES && $_FILES['filename']['size'] > 0){
-        // TODO: check file type? exe only
-        $filename = $_FILE['filename']['tmp_name'];
-        if (!isPE($filename)){
+        // TODO: check file type? PE only
+        $filename = $_FILES['filename']['tmp_name'];
+        $microsoftPe = new MicrosftPE($filename);
+        if (!$microsoftPe->isPE($filename)){
             echo "<script>window.alert('Improper file format."
             . "We only check .exe files');</script>"
             . "<script language='javascript'>window.location."
             . "href ='virus_checker.php'</script>";
         }
+        
+        // TODO: some sanity check in the headers
+
         // TODO: load the array of bytes to check against database
         // TODO: do check
+
     }
     
     echo<<<_END

@@ -118,6 +118,20 @@
             $name = $this->sanitize($name);
             $password = $this->sanitize($password);
             
+            // Create tables if they do not exists
+            $stmt = nil;
+            if($admin){
+                $stmt = $this->connection->prepare($this->CREATE_ADMIN_TABLE_Q);
+            }else{
+                $stmt = $this->connection->prepare($this->CREATE_TABLE_Q);
+            }
+            if(!$stmt->execute() || !$stmt->affected_rows === 0){
+                $this->display_error($this->ERROR_MSG);
+                return false;
+            }
+            $stmt->close();
+            $stmt = nil;
+            
             // First verify if user exists and retrive the salts
             $stmt = nil;
             if($admin){
