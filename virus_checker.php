@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once 'session_management.php';
+require_once 'antivirus.php';
+
 if(!validate_user()){
     // JS popup to signify error
     echo "<script>window.alert('You are not logged in.');</script>"
@@ -25,6 +27,27 @@ _END;
         <h2> The perfect free tool to make sure your file is indeed a virus! </h2> <br>
         <br>
         <br>
+        <form method="post" action="antivirus.php" enctype='multipart/form-data'>
+                Select File: <input type="file" name="filename"> <br>
+                <input type="submit" value="Upload">
+        </form>
 _END;
+        
+    if($_FILES && $_FILES['filename']['size'] > 0){
+        // TODO: check file type? exe only
+        $filename = $_FILE['filename']['tmp_name'];
+        if (!isPE($filename)){
+            echo "<script>window.alert('Improper file format."
+            . "We only check .exe files');</script>"
+            . "<script language='javascript'>window.location."
+            . "href ='virus_checker.php'</script>";
+        }
+        // TODO: load the array of bytes to check against database
+        // TODO: do check
+    }
+    
+    echo<<<_END
+        <body>
+    </html>
+_END;        
 ?>
-Hi!

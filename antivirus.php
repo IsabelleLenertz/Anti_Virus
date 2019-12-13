@@ -1,32 +1,11 @@
 <?php
-    require_once 'session_management.php';
-
-    if(!Sessions.validate_user()){
-        header('Location: index.html');
+     function isPE($filename){
+        $fh = fopen($filename, "rb");
+        $data = fread($fh, 2);
+        $u_data = unpack("A2signature", $data);
+        if(u_data[0] != 'M' || u_data[1] != 'Z'){
+            return false;
+        }
+        // find PE?
     }
-    echo <<<_END
-    <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Antivirus</title>
-        </head>
-        <body>
-            <h1> Welcome to free virus check </h1> <br>
-            <h2> The perfect free tool to make sure your file is indeed a virus! </h2> <br>
-            <br>
-            <br>
-            <form method="post" action="antivirus.php" enctype='multipart/form-data'>
-                Select File: <input type="file" name="filename"> <br>
-                <input type="submit" value="Upload">
-            </form>
-_END;        
-    
-    if(_FILES){
-        // TODO: check file type? exe only?
-        // TODO: Load file as bytes
-        // TODO: the array of bytes to check against database
-        // TODO: do check
-    }
-    
-
 ?>
