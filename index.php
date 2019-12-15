@@ -9,7 +9,7 @@ echo <<<_END
         <meta charset="UTF-8">
         <title>Free Virus Check</title>
         <link rel="stylesheet" type="text/css" media="all" href="style.css">
-        <script scr="input_validation.js"> </script>
+        <script src="input_validation.js"> </script>
 _END;
     echo $navbar;
     echo <<<_END
@@ -23,7 +23,7 @@ _END;
         <form method="post" action="login_user.php" onsubmit="return validate_signup(this);" enctype='multipart/form-data'>
             Username: <input type="text" name="username"> <br>
             Password: <input type="password" id="pass1" name="password"> <br>
-            Confirm password: <input type="password" oninput="real_time_identical_passwords(this.value);"> <br>
+            Confirm password: <input type="password" name = "confirm_passsord" oninput="real_time_identical_passwords(this.value);"> <br>
             <p id ="pass_error"></p>
             <input type="submit" value="Signup">
         </form>
