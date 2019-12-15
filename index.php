@@ -9,6 +9,9 @@ echo <<<_END
         <meta charset="UTF-8">
         <title>Free Virus Check</title>
         <link rel="stylesheet" type="text/css" media="all" href="style.css">
+        <script>
+
+
 _END;
     echo $navbar;
     echo <<<_END
