@@ -4,7 +4,7 @@ function validate_signup(form){
     fail += indentical_passwords(form.password.value, form.passwrod.value);
     if(fail === "") return true;
     else {
-        alert(fail);
+        window.alert(fail);
         return false;
     }
 }
@@ -21,9 +21,19 @@ function validate_username(name){
 function validate_password(pass){
     let length = pass.toString().trim().length;
     if (length === 0) return "No password was entered.\n";
-else if (length < 10)return "Passwords must be at least 10 characters.\n"
-else if (!/[a-z]/.test(pass) || ! /[A-Z]/.test(pass) ||!/[0-9]/.test(pass))return "Passwords require one each of a-z, A-Z and 0-9.\n"
-return ""
-    
+    else if (length < 10)return "Passwords must be at least 10 characters.\n"
+    else if (!/[a-z]/.test(pass) || ! /[A-Z]/.test(pass) ||!/[0-9]/.test(pass))return "Passwords require one each of a-z, A-Z and 0-9.\n"
+    return "";   
+}
+
+function identical_passwords(pass1, pass2){
+    if (pass1 !== pass2) return "Passwords do not match";
+    return "";
+}
+
+function real_time_identical_passwords(pass){
+    if(document.getElementById("pass1").value !== pass){
+        document.getElementById("pass_error").innerHTML = "Passwords do not match";
+    }
 }
 
