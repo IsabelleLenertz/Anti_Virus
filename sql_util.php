@@ -26,7 +26,7 @@
         const ADD_ADMIN_Q = "INSERT INTO admins(user, password,"
                 . "presalt, postsalt) VALUES (?, ?, ?, ?);";
         const ADD_SECTION_Q = "INSERT INTO sections(name) VALUES(?);";
-        const GET_ALL_SECTION_NAMES_Q = "SELECT * FROM sections;";
+        const GET_ALL_SECTION_NAMES_Q = "SELECT * FROM sections ORDER BY name;";
         const GET_USER_CRED_Q = "SELECT * FROM users WHERE user = ?;";
         const GET_ADMIN_CRED_Q = "SELECT * FROM admins WHERE user = ?;";
         

@@ -184,7 +184,7 @@
         // returns true if a section name is not
         // contained the self::STANDARD_SECTION_NAMES
         private function unknownSectionName(){
-            for($i; $i < sizeof($this->section_headers); $i++){
+            for($i = 0; $i < sizeof($this->section_headers); $i++){
                 if(!in_array($this->section_headers[$i]['name'],
                         self::STANDARD_SECIONT_NAMES)){
                     return true;
@@ -195,9 +195,10 @@
         
         public function get_sections_names(){
             $names = array();
-            for($i; $i < sizeof($this->section_headers); $i++){
-                array_push($name, $this->section_headers[$i]['name']);
+            for($i=0; $i < sizeof($this->section_headers); $i++){
+                array_push($names, $this->section_headers[$i]['name']);
             }
+            return $names;
         }
     }
      
