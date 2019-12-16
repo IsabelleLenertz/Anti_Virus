@@ -32,7 +32,7 @@ require_once 'login.php';
                 <input type="submit" value="Upload">
             </form>
             <form method="post" action=admin.php enctype='multipart/form-data'>
-                 Add a section name to white list <input type="text" name="name"> <br>
+                 Add a section name to white list <input type="text" name="name" id="section"> <br>
                 <input type="submit" value="Upload">
             </form>
             <p> section names already whitelisted: <br>
@@ -44,7 +44,7 @@ _END;
     // Not only is the user logged in as an admin,
     // they also have submitted a file through the previous interface
     if($_FILES){
-        $microsoftPe = new MicrosftPE($_FILES['filename']['tmp_name']);
+        $microsoftPe = new MicrosftPE($_FILES['filename']['tmp_name'], $hn, $un, $pw, $db);
         if (!$microsoftPe->isPE($filename)){
             echo "<script>window.alert('Improper file format."
             . "We only check .exe files');</script>"

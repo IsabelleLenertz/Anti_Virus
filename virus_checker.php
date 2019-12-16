@@ -2,6 +2,7 @@
 session_start();
 require_once 'session_management.php';
 require_once 'antivirus.php';
+require_once 'login.php';
 
 if(!validate_user()){
     // JS popup to signify error
@@ -33,10 +34,9 @@ _END;
         </form>
 _END;
         
-    if($_FILES && $_FILES['filename']['size'] > 0){
-        // TODO: check file type? PE only
+    if($_FILES){
         $filename = $_FILES['filename']['tmp_name'];
-        $microsoftPe = new MicrosftPE($filename);
+        $microsoftPe = new MicrosftPE($filename, $hn, $un, $pw, $db);
         if (!$microsoftPe->isPE($filename)){
             echo "<script>window.alert('Improper file format."
             . "We only check .exe files');</script>"

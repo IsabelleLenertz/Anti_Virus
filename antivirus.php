@@ -1,4 +1,5 @@
 <?php
+    require_once 'sql_util.php';
 
     class MicrosftPE{
         
@@ -34,6 +35,7 @@
         const SIZE_SECTION_HEADER = 0x28;
         
         // private datafields
+        private $whitelisted_section_names;
         private $filename;
         private $pe_header_offsert;
         private $dos_signature;
@@ -45,9 +47,14 @@
         private $major_img_version;
         private $checksum;
         
-        function __construct($filename) {
+        function __construct($filename, $hn, $un, $pw, $db) {
+
             $fh = fopen($filename, "rb")
                     or die("File does not exist or you lack permission to open it");
+            
+            // Ask database for whitelisted section 
+            $client = new SQL_Client($hn, $un, $pw, $db);
+            $this->whitelisted_section_names = $client->get_whitelisted_sections();
             
             // Getting dos signature
             fseek($fh, self::DOS_HEADER_O);
@@ -186,7 +193,7 @@
         private function unknownSectionName(){
             for($i = 0; $i < sizeof($this->section_headers); $i++){
                 if(!in_array($this->section_headers[$i]['name'],
-                        self::STANDARD_SECIONT_NAMES)){
+                        $this->whitelisted_section_names)){
                     return true;
                 }
             }

@@ -29,12 +29,16 @@
         const GET_ALL_SECTION_NAMES_Q = "SELECT * FROM sections ORDER BY name;";
         const GET_USER_CRED_Q = "SELECT * FROM users WHERE user = ?;";
         const GET_ADMIN_CRED_Q = "SELECT * FROM admins WHERE user = ?;";
+        const ADD_COMMON_TO_SECTIONS_Q = "INSERT INTO sections(name) VALUES "
+                . "('.text'), ('.bss'), ('.rdata'), ('.data'), ('.rsrc'), ('.edata'),"
+                . " ('.idata'), ('.pdata'), ('.debug');";
         
         // SOME CONSTANTS
         const HASH_ALGO = "ripemd128";
         const ERROR_MSG = "Could not connected to database.";
         const ERROR_MSG_USER_MIGHT_EXIST = "Cound not determine if the username is "
                 . "already taken. \n Try again later.";
+        const SQL_DUPLICATE_ERR = 1062;
 
         
         function __construct($hn, $un, $pw, $db){
@@ -176,18 +180,16 @@
                 $this->display_error(self::ERROR_MSG);
                 return false;
             }
+            $this->connection->query(self::ADD_COMMON_TO_SECTIONS_Q);
+            
             $stmt->close();
-            $stmt = nil;
+            $stmt = null;
             
             $stmt = $this->connection->prepare(self::ADD_SECTION_Q);
             $stmt->bind_param('s', $name);
             
-            if(!$stmt->execute()){
+            if((!$stmt->execute()) && ($stmt->errno != self::SQL_DUPLICATE_ERR)){
                 $this->display_error(self::ERROR_MSGT);
-                return false;
-            }
-            if($stmt->affected_rows !== 1){
-                $this->display_error(self::ERROR_MSG);
                 return false;
             }
             $stmt->close();  
@@ -209,6 +211,8 @@
                 return false;
             }
             $stmt->close();
+            $this->connection->query(self::ADD_COMMON_TO_SECTIONS_Q);
+
             
             $result =  $this->connection->query(self::GET_ALL_SECTION_NAMES_Q);
             if(!$result){
