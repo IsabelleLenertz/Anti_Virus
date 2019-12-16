@@ -63,15 +63,11 @@
             fseek($fh, $this->pe_header_offsert);
             $this->pe_signature = fread($fh, self::WORD);
             
-            // Get the size of the code section as recorder in the PE header
-            fseek($fh, $this->pe_header_offsert);
-            $data = fread($fh, self::DWORD);
-            $size_code_offest = unpack("V", $data);
-            
-            fseek($fh, $this->pe_header_offsert + $size_code_offest); //crashes her
+            // Get the size of the code section as recorder in the PE header          
+            fseek($fh, $this->pe_header_offsert + self::RELATVE_SIZE_CODE_O); //crashes her
             $data = fread($fh, self::DWORD);
             $arr = unpack("V", $data);
-            $this->size_of_code = arr[1];
+            $this->size_of_code = $arr[1];
             
             // Get the size of initilized data (used for statisitcal virus check
             fseek($fh, $this->pe_header_offsert + self::RELATIVE_SIZE_INIT_DATA_O);
@@ -82,14 +78,14 @@
             // Get number of sections
             fseek($fh, self::RELATIVE_NUM_SEC_O + $this->pe_header_offsert);
             $data = fread($fh, self::WORD);
-            $arr = (int) unpack('c', $data);
-            $number_sections = arr[1];
+            $arr = unpack('c', $data);
+            $number_sections = $arr[1];
             
             // Get size of optional header
             fseek($fh, self::RELATIVE_SIZE_OPTIONAL_HEADER + $this->pe_header_offsert);
             $data = fread($fh, self::DWORD);
             $arr = unpack("V", $data);
-            $optional_header_size = arr[1];
+            $optional_header_size = $arr[1];
                 
         
             // fill out the array with interesting info about sections
@@ -97,7 +93,7 @@
             $i = 0;
             while($current_offset < $this->pe_header_offsert + $optional_header_size
                     && $i < $number_sections){
-                $this->section_headers[$i] = getSectionInfo($fh, $current_offset);
+                array_push($this->section_headers, $this->getSectionInfo($fh, $current_offset));
                 $current_offset += self::SIZE_SECTION_HEADER;
                 $i++;
             }
@@ -105,28 +101,26 @@
             // get DLL characteristics
             fseek($fh, self::RELATIVE_DLL_CHAR_O + $this->pe_header_offsert);
             $data = fread($fh, self::WORD);
-            $arr = (int) unpack('c', $data);
+            $arr = unpack('c', $data);
             $this->dll_char = $arr[1];
             
             // get major image version
             fseek($fh, self::RELATIVE_MAJOR_IMG_VER_O + $this->pe_header_offsert);
             $data = fread($fh, self::WORD);
             $arr = unpack('c', $data);
-            $this->major_img_version = (int) arr[1];
+            $this->major_img_version = $arr[1];
             
             // get checksum
-            fseek($fh, self::RELATIVE_MAJOR_IMG_VER_O + $this->pe_header_offsert);
+            fseek($fh, self::RELATIVE_CHECKSU_O + $this->pe_header_offsert);
             $data = fread($fh, self::DWORD);
             $arr = unpack('V', $data);
-            $this->checksum = $arr[1];
-            
-            
+            $this->checksum = $arr[1];           
         }
         
         private function getSectionInfo($fh, $beg){
             // Get name of the section
-            $section = arr();
-            fseek($fh, $beg + self::RELATIVE_SECTION_NAME_OE);
+            $section = array();
+            fseek($fh, $beg + self::RELATIVE_SECTION_NAME_O);
             $data = fread($fh, self::QWORD);
             $arr = unpack('A8name', $data);
             $section['name'] = $arr['name'];
@@ -171,7 +165,7 @@
             
             if($this->size_of_initialized_data == 0){
                 return false;
-            } else if (unknownSectionName()){
+            } else if ($this->unknownSectionName()){
                 return false;
             } else if ($this->dll_char == 0 
                     && $this->major_img_version == 0
@@ -197,6 +191,13 @@
                 }
             }
             return false;
+        }
+        
+        public function get_sections_names(){
+            $names = array();
+            for($i; $i < sizeof($this->section_headers); $i++){
+                array_push($name, $this->section_headers[$i]['name']);
+            }
         }
     }
      

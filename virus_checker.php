@@ -45,9 +45,19 @@ _END;
         }
         
         // TODO: some sanity check in the headers
-
+        if (!$microsoftPe->sanity_checks()){
+            echo "<script>window.alert('You got a virus!');</script>"
+            . "<script language='javascript'>window.location."
+            . "href ='virus_checker.php'</script>";
+        }
         // TODO: load the array of bytes to check against database
-        // TODO: do check
+        // TODO: do check against signatures
+        
+        // Signify non viral file
+            echo "<script>window.alert('Your file is safe.');</script>"
+            . "<script language='javascript'>window.location."
+            . "href ='virus_checker.php'</script>";
+
 
     }
     

@@ -3,40 +3,44 @@
 // GRANT INSERT, SELECT, CREATE ON antivirus.* to 'web_agent'@'localhost';
     
     class SQL_Client{
-
         private $connection;
         
+
         // SOME SQL QUERIES 
-        private $CREATE_TABLE_Q= "CREATE TABLE IF NOT EXISTS "
+        const CREATE_TABLE_Q= "CREATE TABLE IF NOT EXISTS "
                 . "users(user VARCHAR(20) PRIMARY KEY,"
                 . "password CHAR(32) NOT NULL, "
                 . "presalt CHAR(6) NOT NULL, "
                 . "postsalt CHAR(6) NOT NULL);";
-        private $CREATE_ADMIN_TABLE_Q= "CREATE TABLE IF NOT EXISTS "
+        const CREATE_ADMIN_TABLE_Q= "CREATE TABLE IF NOT EXISTS "
                 . "admins(user VARCHAR(20) PRIMARY KEY,"
                 . "password CHAR(32) NOT NULL, "
                 . "presalt CHAR(6) NOT NULL, "
                 . "postsalt CHAR(6) NOT NULL);";
-        private $TEST_USER_Q = "SELECT * FROM users WHERE user = ?;";
-        private $TEST_ADMIN_Q = "SELECT * FROM users WHERE user = ?;";
-        private $ADD_USER_Q = "INSERT INTO users(user, password,"
+        const CREACTE_SECTION_TABLE_Q = "CREATE TABLE IF NOT EXISTS "
+                . "sections(name CHAR(8) PRIMARY KEY);";
+        const TEST_USER_Q = "SELECT * FROM users WHERE user = ?;";
+        const TEST_ADMIN_Q = "SELECT * FROM users WHERE user = ?;";
+        const ADD_USER_Q = "INSERT INTO users(user, password,"
                 . "presalt, postsalt) VALUES (?, ?, ?, ?);";
-        private $ADD_ADMIN_Q = "INSERT INTO admins(user, password,"
+        const ADD_ADMIN_Q = "INSERT INTO admins(user, password,"
                 . "presalt, postsalt) VALUES (?, ?, ?, ?);";
-        private $GET_USER_CRED_Q = "SELECT * FROM users WHERE user = ?;";
-        private $GET_ADMIN_CRED_Q = "SELECT * FROM admins WHERE user = ?;";
+        const ADD_SECTION_Q = "INSERT INTO sections(name) VALUES(?);";
+        const GET_ALL_SECTION_NAMES_Q = "SELECT * FROM sections;";
+        const GET_USER_CRED_Q = "SELECT * FROM users WHERE user = ?;";
+        const GET_ADMIN_CRED_Q = "SELECT * FROM admins WHERE user = ?;";
         
         // SOME CONSTANTS
-        private $HASH_ALGO = "ripemd128";
-        private $ERROR_MSG = "Could not connected to database.";
-        private $ERROR_MSG_USER_MIGHT_EXIST = "Cound not determine if the username is "
+        const HASH_ALGO = "ripemd128";
+        const ERROR_MSG = "Could not connected to database.";
+        const ERROR_MSG_USER_MIGHT_EXIST = "Cound not determine if the username is "
                 . "already taken. \n Try again later.";
 
         
         function __construct($hn, $un, $pw, $db){
             $this->connection = new mysqli($hn, $un, $pw, $db);
             if($this->connection->connect_error){
-                $this->display_error($this->ERROR_MSG);
+                $this->display_error(self::ERROR_MSG);
             }
         }
         
@@ -56,35 +60,35 @@
             $username = $this->sanitize($username);
             $pre_salt = bin2hex(random_bytes(3));
             $post_salt = bin2hex(random_bytes(3));
-            $password = hash($this->HASH_ALGO, $pre_salt.$this->sanitize($password).$post_salt);
+            $password = hash(self::HASH_ALGO, $pre_salt.$this->sanitize($password).$post_salt);
             
             // Create tables if they do not exists
             $stmt = nil;
             if($admin){
-                $stmt = $this->connection->prepare($this->CREATE_ADMIN_TABLE_Q);
+                $stmt = $this->connection->prepare(self::CREATE_ADMIN_TABLE_Q);
             }else{
-                $stmt = $this->connection->prepare($this->CREATE_TABLE_Q);
+                $stmt = $this->connection->prepare(self::CREATE_TABLE_Q);
             }
-            if(!$stmt->execute() || !$stmt->affected_rows === 0){
-                $this->display_error($this->ERROR_MSG);
+            if(!$stmt->execute() || $stmt->affected_rows !== 0){
+                $this->display_error(self::ERROR_MSG);
                 return false;
             }
             $stmt->close();
-            $stmt = nil;
+            $stmt = null;
             
             // Check if the username is already taken
             if($admin){
-                $stmt = $this->connection->prepare($this->TEST_ADMIN_Q);
+                $stmt = $this->connection->prepare(self::TEST_ADMIN_Q);
             }else{
-                $stmt = $this->connection->prepare($this->TEST_USER_Q);
+                $stmt = $this->connection->prepare(self::TEST_USER_Q);
             }
             $stmt->bind_param('s', $username);
             if(!$stmt->execute()){
-                $this->display_error($this->ERROR_MSGT);
+                $this->display_error(self::ERROR_MSGT);
                 return false;
             }
             if($stmt->affected_rows > 0){
-                $this->display_error($this->ERROR_MSG_USER_MIGHT_EXIST);
+                $this->display_error(self::ERROR_MSG_USER_MIGHT_EXIST);
                 return false;
             }
             $stmt->close();
@@ -93,9 +97,9 @@
             
             // Else add the user to db and return true to signify succes
             if($admin){
-                $stmt = $this->connection->prepare($this->ADD_ADMIN_Q);
+                $stmt = $this->connection->prepare(self::ADD_ADMIN_Q);
             } else {
-                $stmt = $this->connection->prepare($this->ADD_USER_Q);
+                $stmt = $this->connection->prepare(self::ADD_USER_Q);
             }
             $stmt->bind_param('ssss', $username, $password, $pre_salt, $post_salt);
             $result = $stmt->execute();
@@ -121,12 +125,12 @@
             // Create tables if they do not exists
             $stmt = nil;
             if($admin){
-                $stmt = $this->connection->prepare($this->CREATE_ADMIN_TABLE_Q);
+                $stmt = $this->connection->prepare(self::CREATE_ADMIN_TABLE_Q);
             }else{
-                $stmt = $this->connection->prepare($this->CREATE_TABLE_Q);
+                $stmt = $this->connection->prepare(self::CREATE_TABLE_Q);
             }
-            if(!$stmt->execute() || !$stmt->affected_rows === 0){
-                $this->display_error($this->ERROR_MSG);
+            if(!$stmt->execute() || $stmt->affected_rows !== 0){
+                $this->display_error(self::ERROR_MSG);
                 return false;
             }
             $stmt->close();
@@ -135,9 +139,9 @@
             // First verify if user exists and retrive the salts
             $stmt = nil;
             if($admin){
-                $stmt = $this->connection->prepare($this->GET_ADMIN_CRED_Q);
+                $stmt = $this->connection->prepare(self::GET_ADMIN_CRED_Q);
             }else {
-                $stmt = $this->connection->prepare($this->GET_USER_CRED_Q);
+                $stmt = $this->connection->prepare(self::GET_USER_CRED_Q);
             }
             $stmt->bind_param('s', $name);
             $result = false;
@@ -147,7 +151,7 @@
                     if($dbUsername === null || !isset($dbUsername)){
                         $result = false;
                     } else{
-                        $password = hash($this->HASH_ALGO, $pre_salt.$password.$post_salt);
+                        $password = hash(self::HASH_ALGO, $pre_salt.$password.$post_salt);
                         $result = ($password === $dbPassword);
                     }
                 }
@@ -165,6 +169,74 @@
             return $this->check_credentials($name, $password, true);
         }
     
+        public function add_section($name){
+            $name = $this->sanitize($name);
+            $stmt = $this->connection->prepare(self::CREACTE_SECTION_TABLE_Q);
+            if(!$stmt->execute() || $stmt->affected_rows !== 0){
+                $this->display_error(self::ERROR_MSG);
+                return false;
+            }
+            $stmt->close();
+            $stmt = nil;
+            
+            $stmt = $this->connection->prepare(self::ADD_SECTION_Q);
+            $stmt->bind_param('s', $name);
+            
+            if(!$stmt->execute()){
+                $this->display_error(self::ERROR_MSGT);
+                return false;
+            }
+            if($stmt->affected_rows !== 1){
+                $this->display_error(self::ERROR_MSG);
+                return false;
+            }
+            $stmt->close();  
+            return true;
+        }
+        
+        public function add_sections($arr){
+            for($i = 0; $i < sizeof($arr); $i++){
+                if (! $this->add_section($arr[$i])){
+                    return false;
+                }
+            }
+            return true;
+        }
+        public function get_whitelisted_sections(){
+            $stmt = $this->connection->prepare(self::CREACTE_SECTION_TABLE_Q);
+            if(!$stmt->execute() || $stmt->affected_rows !== 0){
+                $this->display_error(self::ERROR_MSG);
+                return false;
+            }
+            $stmt->close();
+            
+            $result =  $this->connection->query(self::GET_ALL_SECTION_NAMES_Q);
+            if(!$result){
+                $this->display_error(self::ERROR_MSGT);
+                return false;
+            }
+            $arr = array();
+            $rows = $result->num_rows;
+            for($i = 0; $i < $rows; $i++){
+                $result->data_seek($i);
+                $row = $result->fetch_assoc();
+                array_push($arr, $row['name']);    
+            }
+            return $arr;
+        }
+        /**
+         * $query = "SELECT * FROM viruses";
+        $result = $connection->query($query);
+        if (!$result) die(display_error("Could not access virus database"));
+        $rows = $result->num_rows;
+        for($i = 0; $i < $rows; $i++){
+            $result->data_seek($i);
+            $row = $result->fetch_assoc();
+            $bad = $row['signature'];
+
+         * @param type $variable
+         * @return type
+         */
         public function sanitize($variable){
             if(get_magic_quotes_gpc()) {
                 $variable = stripslashes($variable);

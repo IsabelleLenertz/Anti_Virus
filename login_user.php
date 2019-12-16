@@ -8,7 +8,7 @@ require_once 'login.php';
     $client = new SQL_Client($hn, $un, $pw, $db);
     
     // to create an admin instead of a user uncomment next lin
-    //$client->add_admin("<name>", "<pass>");
+    $client->add_admin("admin", "123");
     
     // Attempts to log the visitor in as a user using the info provided 
     // in the post method from index.html
@@ -80,7 +80,6 @@ require_once 'login.php';
     
     // If the credentials were not valid or not enough info was provided
     // go back to login.
-    echo '<script language="javascript">window.location.'
-        . 'href ="index.php"</script>';
+   echo  "<a href='index.php'> Go back to log in </a>";
 
  ?>
